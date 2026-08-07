@@ -85,11 +85,25 @@ services:
     networks:
       - data_network
       - storage_network
-    ports:
-      - "3000:3000"
+      - homelab-network
+    # No host port published — Caddy reaches this by container name on
+    # homelab-network at resume.henryhomelab.dev. Uncomment for direct/debug
+    # access on the host (pick a free port; 3000/3001 are taken by other stacks).
+    # ports:
+    #   - "3005:3000"
     env_file:
       - path: .env.example
         required: false
+    environment:
+      # Public URL fronted by Caddy on homelab-network. Overrides the
+      # localhost default in .env.example so auth callbacks/links are correct.
+      APP_URL: https://resume.henryhomelab.dev
+      # This app joins homelab-network (for Caddy), where other stacks publish
+      # the generic alias "postgres" (n8n-postgres, rss-postgres). Reaching
+      # backends by their unique container names avoids that DNS collision.
+      DATABASE_URL: postgresql://postgres:postgres@reactive_resume-postgres-1:5432/postgres
+      REDIS_URL: redis://reactive_resume-redis-1:6379
+      S3_ENDPOINT: http://reactive_resume-seaweedfs-1:8333
     volumes:
       - ./data:/app/data
     depends_on:
@@ -116,3 +130,5 @@ volumes:
 networks:
   data_network:
   storage_network:
+  homelab-network:
+    external: true
