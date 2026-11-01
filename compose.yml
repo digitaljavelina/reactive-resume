@@ -78,6 +78,7 @@ services:
         condition: service_healthy
 
   reactive_resume:
+    restart: unless-stopped
     # image: ghcr.io/amruthpillai/reactive-resume:latest
     build:
       context: .
